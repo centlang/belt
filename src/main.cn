@@ -4,15 +4,28 @@ with gtk;
 with webkit;
 
 const WEBSITE = "https://centlang.org";
+const MARGIN = 5;
+const RIGHT_MARGIN = 100;
 const APP_ID = "org.centlang.cent-browser";
 
 #(extern) fn activate(app: *mut gtk::Application, _data: *c::void) {
     let window = gtk::application_window_new(app);
+
+    let box = gtk::box_new(gtk::ORIENTATION_VERTICAL, 0);
+    gtk::window_set_child(window, box);
+
+    let entry = gtk::entry_new();
+    gtk::widget_set_margin_start(entry, MARGIN);
+    gtk::widget_set_margin_end(entry, RIGHT_MARGIN);
+    gtk::widget_set_margin_top(entry, MARGIN);
+    gtk::widget_set_margin_bottom(entry, MARGIN);
+    gtk::box_append(box, entry);
+
     let webview = webkit::web_view_new();
+    gtk::widget_set_vexpand(webview, true);
+    gtk::box_append(box, webview);
 
     webkit::web_view_load_uri(webview, WEBSITE);
-
-    gtk::window_set_child(window, webview);
     gtk::window_present(window);
 }
 

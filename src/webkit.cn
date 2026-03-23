@@ -4,8 +4,10 @@ with gtk;
 
 type WebView = c::void;
 
-#(extern) fn webkit_web_view_new() *mut gtk::Widget;
-#(extern) fn webkit_web_view_load_uri(web_view: *mut WebView, uri: *c::char);
+#(extern) {
+    fn webkit_web_view_new() *mut gtk::Widget;
+    fn webkit_web_view_load_uri(web_view: *mut WebView, uri: *c::char);
+}
 
 pub fn web_view_new() *mut gtk::Widget {
     return webkit_web_view_new();

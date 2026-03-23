@@ -5,18 +5,35 @@ with glib;
 pub type Application = c::void;
 pub type Window = c::void;
 pub type Widget = c::void;
+pub type Box = c::void;
+pub type Orientation = c::int;
 
-#(extern) fn gtk_application_new(
-    application_id: *c::char, flags: glib::ApplicationFlags
-) *mut Application;
+pub const ORIENTATION_VERTICAL = 1;
 
-#(extern) fn gtk_application_window_new(
-    application: *mut Application
-) *mut Widget;
+const TRUE = 1;
+const FALSE = 0;
 
-#(extern) fn gtk_window_set_child(window: *mut Window, child: *mut Widget);
+#(extern) {
+    fn gtk_application_new(
+        application_id: *c::char, flags: glib::ApplicationFlags
+    ) *mut Application;
 
-#(extern) fn gtk_window_present(window: *mut Window);
+    fn gtk_application_window_new(application: *mut Application) *mut Widget;
+
+    fn gtk_window_set_child(window: *mut Window, child: *mut Widget);
+    fn gtk_window_present(window: *mut Window);
+
+    fn gtk_widget_set_vexpand(widget: *mut Widget, expand: c::int);
+    fn gtk_widget_set_margin_start(widget: *mut Widget, margin: c::int);
+    fn gtk_widget_set_margin_end(widget: *mut Widget, margin: c::int);
+    fn gtk_widget_set_margin_top(widget: *mut Widget, margin: c::int);
+    fn gtk_widget_set_margin_bottom(widget: *mut Widget, margin: c::int);
+
+    fn gtk_box_new(orientation: Orientation, spacing: c::int) *mut Widget;
+    fn gtk_box_append(box: *mut Box, child: *mut Widget);
+
+    fn gtk_entry_new() *mut Widget;
+}
 
 pub fn application_new(
     application_id: []u8, flags: glib::ApplicationFlags
@@ -37,4 +54,40 @@ pub fn window_set_child(window: *mut Window, child: *mut Widget) {
 
 pub fn window_present(window: *mut Window) {
     gtk_window_present(window);
+}
+
+pub fn widget_set_vexpand(widget: *mut Widget, expand: bool) {
+    if expand {
+        gtk_widget_set_vexpand(widget, TRUE);
+    } else {
+        gtk_widget_set_vexpand(widget, FALSE);
+    }
+}
+
+pub fn widget_set_margin_start(widget: *mut Widget, margin: c::int) {
+    gtk_widget_set_margin_start(widget, margin);
+}
+
+pub fn widget_set_margin_end(widget: *mut Widget, margin: c::int) {
+    gtk_widget_set_margin_end(widget, margin);
+}
+
+pub fn widget_set_margin_top(widget: *mut Widget, margin: c::int) {
+    gtk_widget_set_margin_top(widget, margin);
+}
+
+pub fn widget_set_margin_bottom(widget: *mut Widget, margin: c::int) {
+    gtk_widget_set_margin_bottom(widget, margin);
+}
+
+pub fn box_new(orientation: Orientation, spacing: c::int) *mut Widget {
+    return gtk_box_new(orientation, spacing);
+}
+
+pub fn box_append(box: *mut Box, child: *mut Widget) {
+    gtk_box_append(box, child);
+}
+
+pub fn entry_new() *mut Widget {
+    return gtk_entry_new();
 }
