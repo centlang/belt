@@ -1,0 +1,47 @@
+with c;
+with std::ffi;
+
+pub type Application = c::void;
+pub type ApplicationFlags = c::int;
+pub type ConnectFlags = c::int;
+pub type Callback = *fn();
+pub type Closure = c::void;
+pub type ClosureNotify = *fn(data: ?*mut c::void, closure: *mut Closure);
+
+pub const APPLICATION_DEFAULT_FLAGS = 0;
+
+#(extern) fn g_signal_connect_data(
+    instance: *mut c::void, detailed_signal: *c::char, c_handler: Callback,
+    data: ?*mut c::void, destroy_data: ?ClosureNotify,
+    connect_flags: ConnectFlags
+) c::ulong;
+
+#(extern) fn g_application_run(
+    application: *mut Application, argc: c::int, argv: **c::char
+) c::int;
+
+#(extern) fn g_object_unref(object: *mut c::void);
+
+pub fn signal_connect(
+    instance: *mut c::void, detailed_signal: []u8, c_handler: Callback,
+    data: ?*mut c::void, destroy_data: ?ClosureNotify = null,
+    connect_flags: ConnectFlags = 0
+) c::ulong {
+    mut cstr: [detailed_signal.len + 1]u8 = undefined;
+    ffi::cstr_to(cstr, detailed_signal);
+
+    return g_signal_connect_data(
+        instance, ffi::as_cstr(cstr), c_handler, data, destroy_data,
+        connect_flags
+    );
+}
+
+pub fn application_run(
+    application: *mut Application, argc: c::int, argv: **c::char
+) c::int {
+    return g_application_run(application, argc, argv);
+}
+
+pub fn object_unref(object: *mut c::void) {
+    g_object_unref(object);
+}
