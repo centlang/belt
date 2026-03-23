@@ -1,0 +1,27 @@
+with c;
+with glib;
+with gtk;
+with webkit;
+
+const WEBSITE = "https://centlang.org";
+const APP_ID = "org.centlang.cent-browser";
+
+#(extern) fn activate(app: *mut gtk::Application, _data: *c::void) {
+    let window = gtk::application_window_new(app);
+    let webview = webkit::web_view_new();
+
+    webkit::web_view_load_uri(webview, WEBSITE);
+
+    gtk::window_set_child(window, webview);
+    gtk::window_present(window);
+}
+
+#(extern) fn main(argc: c::int, argv: **c::char) c::int {
+    let app = gtk::application_new(APP_ID, glib::APPLICATION_DEFAULT_FLAGS);
+    glib::signal_connect(app, "activate", &activate as glib::Callback, null);
+
+    let status = glib::application_run(app, argc, argv);
+    glib::object_unref(app);
+
+    return status;
+}
