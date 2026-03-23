@@ -22,6 +22,8 @@ pub const APPLICATION_DEFAULT_FLAGS = 0;
     ) c::int;
 
     fn g_object_unref(object: *mut c::void);
+
+    fn g_malloc(n_bytes: usize) *mut c::void;
     fn g_malloc_n(n_blocks: usize, n_block_bytes: usize) *mut c::void;
 }
 
@@ -47,6 +49,10 @@ pub fn application_run(
 
 pub fn object_unref(object: *mut c::void) {
     g_object_unref(object);
+}
+
+pub fn malloc(n_bytes: usize) *mut c::void {
+    return g_malloc(n_bytes);
 }
 
 pub fn malloc_n(n_blocks: usize, n_block_bytes: usize) *mut c::void {

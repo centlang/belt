@@ -6,6 +6,8 @@ pub type Application = c::void;
 pub type Window = c::void;
 pub type Widget = c::void;
 pub type Box = c::void;
+pub type Entry = c::void;
+pub type Editable = c::void;
 pub type Orientation = c::int;
 
 pub const ORIENTATION_VERTICAL = 1;
@@ -33,6 +35,7 @@ const FALSE = 0;
     fn gtk_box_append(box: *mut Box, child: *mut Widget);
 
     fn gtk_entry_new() *mut Widget;
+    fn gtk_editable_get_text(editable: *mut Editable) *c::char;
 }
 
 pub fn application_new(
@@ -90,4 +93,9 @@ pub fn box_append(box: *mut Box, child: *mut Widget) {
 
 pub fn entry_new() *mut Widget {
     return gtk_entry_new();
+}
+
+pub fn editable_get_text(editable: *mut Editable) []u8 {
+    let cstr = gtk_editable_get_text(editable);
+    return core::mem::as_u8_slice(cstr as *u8, c::strlen(cstr));
 }

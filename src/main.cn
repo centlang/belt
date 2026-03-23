@@ -4,9 +4,22 @@ with gtk;
 with webkit;
 
 const WEBSITE = "https://centlang.org";
+const APP_ID = "org.centlang.cent-browser";
+
 const MARGIN = 5;
 const RIGHT_MARGIN = 100;
-const APP_ID = "org.centlang.cent-browser";
+
+type Widgets {
+    entry: *mut gtk::Entry,
+    webview: *mut webkit::WebView,
+}
+
+#(extern) fn entry_activate(entry: *mut gtk::Entry, _data: *mut c::void) {
+    let w = _data as *mut Widgets;
+
+    let url = gtk::editable_get_text(entry);
+    webkit::web_view_load_uri(w.webview, url);
+}
 
 #(extern) fn activate(app: *mut gtk::Application, _data: *c::void) {
     let window = gtk::application_window_new(app);
@@ -24,6 +37,14 @@ const APP_ID = "org.centlang.cent-browser";
     let webview = webkit::web_view_new();
     gtk::widget_set_vexpand(webview, true);
     gtk::box_append(box, webview);
+
+    let w = glib::malloc(sizeof(Widgets)) as *mut Widgets;
+    w.entry = entry;
+    w.webview = webview;
+
+    glib::signal_connect(
+        entry, "activate", &entry_activate as glib::Callback, w as *mut c::void
+    );
 
     webkit::web_view_load_uri(webview, WEBSITE);
     gtk::window_present(window);
