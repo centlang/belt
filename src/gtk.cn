@@ -1,0 +1,40 @@
+with c;
+with std::ffi;
+with glib;
+
+pub type Application = c::void;
+pub type Window = c::void;
+pub type Widget = c::void;
+
+#(extern) fn gtk_application_new(
+    application_id: *c::char, flags: glib::ApplicationFlags
+) *mut Application;
+
+#(extern) fn gtk_application_window_new(
+    application: *mut Application
+) *mut Widget;
+
+#(extern) fn gtk_window_set_child(window: *mut Window, child: *mut Widget);
+
+#(extern) fn gtk_window_present(window: *mut Window);
+
+pub fn application_new(
+    application_id: []u8, flags: glib::ApplicationFlags
+) *mut Application {
+    mut cstr: [application_id.len + 1]u8 = undefined;
+    ffi::cstr_to(cstr, application_id);
+
+    return gtk_application_new(ffi::as_cstr(cstr), flags);
+}
+
+pub fn application_window_new(application: *mut Application) *mut Widget {
+    return gtk_application_window_new(application);
+}
+
+pub fn window_set_child(window: *mut Window, child: *mut Widget) {
+    gtk_window_set_child(window, child);
+}
+
+pub fn window_present(window: *mut Window) {
+    gtk_window_present(window);
+}
