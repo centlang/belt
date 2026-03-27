@@ -6,7 +6,9 @@ type WebView = c::void;
 
 #(extern) {
     fn webkit_web_view_new() *mut gtk::Widget;
+
     fn webkit_web_view_load_uri(web_view: *mut WebView, uri: *c::char);
+    fn webkit_web_view_get_uri(web_view: *mut WebView) ?*c::char;
 }
 
 pub fn web_view_new() *mut gtk::Widget {
@@ -18,4 +20,14 @@ pub fn web_view_load_uri(web_view: *mut WebView, uri: []u8) {
     ffi::cstr_to(cstr, uri);
 
     webkit_web_view_load_uri(web_view, ffi::as_cstr(cstr));
+}
+
+pub fn web_view_get_uri(web_view: *mut WebView) ?[]u8 {
+    let cstr = webkit_web_view_get_uri(web_view);
+
+    if cstr == null {
+        return null;
+    }
+
+    return core::mem::as_u8_slice(cstr.! as *u8, c::strlen(cstr.!));
 }

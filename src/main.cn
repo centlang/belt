@@ -3,6 +3,8 @@ with glib;
 with gtk;
 with webkit;
 
+with std::io;
+
 const WEBSITE = "https://centlang.org";
 const APP_ID = "org.centlang.cent-browser";
 
@@ -14,14 +16,26 @@ type Widgets {
     webview: *mut webkit::WebView,
 }
 
-#(extern) fn entry_activate(entry: *mut gtk::Entry, _data: *mut c::void) {
-    let w = _data as *mut Widgets;
+fn entry_activate(entry: *mut gtk::Entry, data: *mut c::void) {
+    let w = data as *mut Widgets;
 
-    let url = gtk::editable_get_text(entry);
-    webkit::web_view_load_uri(w.webview, url);
+    let uri = gtk::editable_get_text(entry);
+    webkit::web_view_load_uri(w.webview, uri);
 }
 
-#(extern) fn activate(app: *mut gtk::Application, _data: *c::void) {
+fn uri_notify(
+    view: *mut webkit::WebView, spec: *mut glib::ParamSpec, data: *mut c::void
+) {
+    let w = data as *mut Widgets;
+
+    let uri = webkit::web_view_get_uri(view);
+
+    if uri != null {
+        gtk::editable_set_text(w.entry, uri.!);
+    }
+}
+
+fn activate(app: *mut gtk::Application, _data: *c::void) {
     let window = gtk::application_window_new(app);
 
     let box = gtk::box_new(gtk::ORIENTATION_VERTICAL, 0);
@@ -39,11 +53,16 @@ type Widgets {
     gtk::box_append(box, webview);
 
     let w = glib::malloc(sizeof(Widgets)) as *mut Widgets;
+
     w.entry = entry;
     w.webview = webview;
 
     glib::signal_connect(
         entry, "activate", &entry_activate as glib::Callback, w as *mut c::void
+    );
+
+    glib::signal_connect(
+        webview, "notify::uri", &uri_notify as glib::Callback, w as *mut c::void
     );
 
     webkit::web_view_load_uri(webview, WEBSITE);

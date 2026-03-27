@@ -36,6 +36,7 @@ const FALSE = 0;
 
     fn gtk_entry_new() *mut Widget;
     fn gtk_editable_get_text(editable: *mut Editable) *c::char;
+    fn gtk_editable_set_text(editable: *mut Editable, text: *c::char);
 }
 
 pub fn application_new(
@@ -98,4 +99,11 @@ pub fn entry_new() *mut Widget {
 pub fn editable_get_text(editable: *mut Editable) []u8 {
     let cstr = gtk_editable_get_text(editable);
     return core::mem::as_u8_slice(cstr as *u8, c::strlen(cstr));
+}
+
+pub fn editable_set_text(editable: *mut Editable, text: []u8) {
+    mut cstr: [text.len + 1]u8 = undefined;
+    ffi::cstr_to(cstr, text);
+
+    gtk_editable_set_text(editable, ffi::as_cstr(cstr));
 }
