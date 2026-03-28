@@ -9,7 +9,7 @@ const WEBSITE = "https://centlang.org";
 const APP_ID = "org.centlang.cent-browser";
 
 const MARGIN = 5;
-const RIGHT_MARGIN = 100;
+const TOOLBAR_SPACING = 15;
 
 type Widgets {
     entry: *mut gtk::Entry,
@@ -27,12 +27,16 @@ fn uri_notify(
     view: *mut webkit::WebView, spec: *mut glib::ParamSpec, data: *mut c::void
 ) {
     let w = data as *mut Widgets;
-
     let uri = webkit::web_view_get_uri(view);
 
     if uri != null {
         gtk::editable_set_text(w.entry, uri.!);
     }
+}
+
+fn refresh_clicked(button: *mut gtk::Button, data: *mut c::void) {
+    let w = data as *mut Widgets;
+    webkit::web_view_reload(w.webview);
 }
 
 fn activate(app: *mut gtk::Application, _data: *c::void) {
@@ -41,16 +45,23 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
     let box = gtk::box_new(gtk::ORIENTATION_VERTICAL, 0);
     gtk::window_set_child(window, box);
 
+    let toolbar = gtk::box_new(gtk::ORIENTATION_HORIZONTAL, TOOLBAR_SPACING);
+    gtk::box_append(box, toolbar);
+    gtk::widget_set_margin_start(toolbar, MARGIN);
+    gtk::widget_set_margin_end(toolbar, MARGIN);
+    gtk::widget_set_margin_top(toolbar, MARGIN);
+    gtk::widget_set_margin_bottom(toolbar, MARGIN);
+
     let entry = gtk::entry_new();
-    gtk::widget_set_margin_start(entry, MARGIN);
-    gtk::widget_set_margin_end(entry, RIGHT_MARGIN);
-    gtk::widget_set_margin_top(entry, MARGIN);
-    gtk::widget_set_margin_bottom(entry, MARGIN);
-    gtk::box_append(box, entry);
+    gtk::box_append(toolbar, entry);
+    gtk::widget_set_hexpand(entry, true);
+
+    let refresh = gtk::button_new_with_label("⟳");
+    gtk::box_append(toolbar, refresh);
 
     let webview = webkit::web_view_new();
-    gtk::widget_set_vexpand(webview, true);
     gtk::box_append(box, webview);
+    gtk::widget_set_vexpand(webview, true);
 
     let w = glib::malloc(sizeof(Widgets)) as *mut Widgets;
 
@@ -59,6 +70,11 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
 
     glib::signal_connect(
         entry, "activate", &entry_activate as glib::Callback, w as *mut c::void
+    );
+
+    glib::signal_connect(
+        refresh, "clicked", &refresh_clicked as glib::Callback,
+        w as *mut c::void
     );
 
     glib::signal_connect(

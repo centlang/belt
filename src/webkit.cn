@@ -9,6 +9,8 @@ type WebView = c::void;
 
     fn webkit_web_view_load_uri(web_view: *mut WebView, uri: *c::char);
     fn webkit_web_view_get_uri(web_view: *mut WebView) ?*c::char;
+
+    fn webkit_web_view_reload(web_view: *mut WebView);
 }
 
 pub fn web_view_new() *mut gtk::Widget {
@@ -30,4 +32,8 @@ pub fn web_view_get_uri(web_view: *mut WebView) ?[]u8 {
     }
 
     return core::mem::as_u8_slice(cstr.! as *u8, c::strlen(cstr.!));
+}
+
+pub fn web_view_reload(web_view: *mut WebView) {
+    webkit_web_view_reload(web_view);
 }
