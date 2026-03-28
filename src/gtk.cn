@@ -40,6 +40,7 @@ pub const ORIENTATION_VERTICAL = 1;
     fn gtk_editable_set_text(editable: *mut Editable, text: *c::char);
 
     fn gtk_button_new_with_label(label: *c::char) *mut Widget;
+    fn gtk_button_set_label(button: *mut Button, label: *c::char);
 }
 
 pub fn application_new(
@@ -132,4 +133,11 @@ pub fn button_new_with_label(label: []u8) *mut Widget {
     ffi::cstr_to(cstr, label);
 
     return gtk_button_new_with_label(ffi::as_cstr(cstr));
+}
+
+pub fn button_set_label(button: *mut Button, label: []u8) {
+    mut cstr: [label.len + 1]u8 = undefined;
+    ffi::cstr_to(cstr, label);
+
+    gtk_button_set_label(button, ffi::as_cstr(cstr));
 }

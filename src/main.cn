@@ -9,6 +9,7 @@ const WEBSITE = "https://centlang.org";
 const APP_ID = "org.centlang.belt";
 
 const REFRESH_ICON = "⟳";
+const X_ICON = "⨉";
 const BACK_ICON = "←";
 const FORWARD_ICON = "→";
 
@@ -44,6 +45,12 @@ fn load_changed(
 ) {
     gtk::widget_set_sensitive(w.back, webkit::web_view_can_go_back(view));
     gtk::widget_set_sensitive(w.forward, webkit::web_view_can_go_forward(view));
+
+    if webkit::web_view_is_loading(view) {
+        gtk::button_set_label(w.refresh, X_ICON);
+    } else {
+        gtk::button_set_label(w.refresh, REFRESH_ICON);
+    }
 }
 
 fn back_clicked(button: *mut gtk::Button, w: *mut Widgets) {
@@ -55,7 +62,11 @@ fn forward_clicked(button: *mut gtk::Button, w: *mut Widgets) {
 }
 
 fn refresh_clicked(button: *mut gtk::Button, w: *mut Widgets) {
-    webkit::web_view_reload(w.webview);
+    if webkit::web_view_is_loading(w.webview) {
+        webkit::web_view_stop_loading(w.webview);
+    } else {
+        webkit::web_view_reload(w.webview);
+    }
 }
 
 fn activate(app: *mut gtk::Application, _data: *c::void) {

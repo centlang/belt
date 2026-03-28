@@ -13,6 +13,10 @@ type LoadEvent = c::int;
     fn webkit_web_view_get_uri(web_view: *mut WebView) ?*c::char;
 
     fn webkit_web_view_reload(web_view: *mut WebView);
+    fn webkit_web_view_stop_loading(web_view: *mut WebView);
+
+    fn webkit_web_view_is_loading(web_view: *mut WebView) c::int;
+
     fn webkit_web_view_go_back(web_view: *mut WebView);
     fn webkit_web_view_go_forward(web_view: *mut WebView);
 
@@ -43,6 +47,14 @@ pub fn web_view_get_uri(web_view: *mut WebView) ?[]u8 {
 
 pub fn web_view_reload(web_view: *mut WebView) {
     webkit_web_view_reload(web_view);
+}
+
+pub fn web_view_stop_loading(web_view: *mut WebView) {
+    webkit_web_view_stop_loading(web_view);
+}
+
+pub fn web_view_is_loading(web_view: *mut WebView) bool {
+    return webkit_web_view_is_loading(web_view) == glib::TRUE;
 }
 
 pub fn web_view_go_back(web_view: *mut WebView) {
