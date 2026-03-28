@@ -119,6 +119,10 @@ fn refresh_clicked(button: *mut gtk::Button, w: *mut Widgets) {
     }
 }
 
+fn plus_clicked(button: *mut gtk::Button, w: *mut Widgets) {
+    add_tab(w, WEBSITE);
+}
+
 fn tab_switched(
     tabs: *mut gtk::Notebook, page: *mut webkit::WebView, _num: c::uint,
     w: *mut Widgets
@@ -181,6 +185,9 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
     gtk::widget_set_vexpand(tabs, true);
     gtk::box_append(box, tabs);
 
+    let plus = gtk::button_new_with_label("+");
+    gtk::notebook_set_action_widget(tabs, plus, gtk::PackType::end);
+
     let w = glib::malloc(sizeof(Widgets)) as *mut Widgets;
 
     *w = Widgets {
@@ -208,6 +215,10 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
     glib::signal_connect(
         refresh, "clicked", &refresh_clicked as glib::Callback,
         w as *mut c::void
+    );
+
+    glib::signal_connect(
+        plus, "clicked", &plus_clicked as glib::Callback, w as *mut c::void
     );
 
     glib::signal_connect(
