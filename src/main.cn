@@ -24,17 +24,14 @@ type Widgets {
     webview: *mut webkit::WebView,
 }
 
-fn entry_activate(entry: *mut gtk::Entry, data: *mut c::void) {
-    let w = data as *mut Widgets;
-
+fn entry_activate(entry: *mut gtk::Entry, w: *mut Widgets) {
     let uri = gtk::editable_get_text(entry);
     webkit::web_view_load_uri(w.webview, uri);
 }
 
 fn uri_notify(
-    view: *mut webkit::WebView, spec: *mut glib::ParamSpec, data: *mut c::void
+    view: *mut webkit::WebView, _spec: *mut glib::ParamSpec, w: *mut Widgets
 ) {
-    let w = data as *mut Widgets;
     let uri = webkit::web_view_get_uri(view);
 
     if uri != null {
@@ -42,18 +39,22 @@ fn uri_notify(
     }
 }
 
-fn back_clicked(button: *mut gtk::Button, data: *mut c::void) {
-    let w = data as *mut Widgets;
+fn load_changed(
+    view: *mut webkit::WebView, _event: webkit::LoadEvent, w: *mut Widgets
+) {
+    gtk::widget_set_sensitive(w.back, webkit::web_view_can_go_back(view));
+    gtk::widget_set_sensitive(w.forward, webkit::web_view_can_go_forward(view));
+}
+
+fn back_clicked(button: *mut gtk::Button, w: *mut Widgets) {
     webkit::web_view_go_back(w.webview);
 }
 
-fn forward_clicked(button: *mut gtk::Button, data: *mut c::void) {
-    let w = data as *mut Widgets;
+fn forward_clicked(button: *mut gtk::Button, w: *mut Widgets) {
     webkit::web_view_go_forward(w.webview);
 }
 
-fn refresh_clicked(button: *mut gtk::Button, data: *mut c::void) {
-    let w = data as *mut Widgets;
+fn refresh_clicked(button: *mut gtk::Button, w: *mut Widgets) {
     webkit::web_view_reload(w.webview);
 }
 
@@ -123,6 +124,11 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
 
     glib::signal_connect(
         webview, "notify::uri", &uri_notify as glib::Callback, w as *mut c::void
+    );
+
+    glib::signal_connect(
+        webview, "load-changed", &load_changed as glib::Callback,
+        w as *mut c::void
     );
 
     webkit::web_view_load_uri(webview, WEBSITE);

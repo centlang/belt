@@ -41,6 +41,9 @@ pub type ParamSpec {
 
 pub const APPLICATION_DEFAULT_FLAGS = 0;
 
+pub const TRUE = 1;
+pub const FALSE = 0;
+
 #(extern) {
     fn g_signal_connect_data(
         instance: *mut c::void, detailed_signal: *c::char, c_handler: Callback,

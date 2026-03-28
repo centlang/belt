@@ -14,9 +14,6 @@ pub type Orientation = c::int;
 pub const ORIENTATION_HORIZONTAL = 0;
 pub const ORIENTATION_VERTICAL = 1;
 
-const TRUE = 1;
-const FALSE = 0;
-
 #(extern) {
     fn gtk_application_new(
         application_id: *c::char, flags: glib::ApplicationFlags
@@ -29,6 +26,7 @@ const FALSE = 0;
 
     fn gtk_widget_set_vexpand(widget: *mut Widget, expand: c::int);
     fn gtk_widget_set_hexpand(widget: *mut Widget, expand: c::int);
+    fn gtk_widget_set_sensitive(widget: *mut Widget, sensitive: c::int);
     fn gtk_widget_set_margin_start(widget: *mut Widget, margin: c::int);
     fn gtk_widget_set_margin_end(widget: *mut Widget, margin: c::int);
     fn gtk_widget_set_margin_top(widget: *mut Widget, margin: c::int);
@@ -67,17 +65,25 @@ pub fn window_present(window: *mut Window) {
 
 pub fn widget_set_vexpand(widget: *mut Widget, expand: bool) {
     if expand {
-        gtk_widget_set_vexpand(widget, TRUE);
+        gtk_widget_set_vexpand(widget, glib::TRUE);
     } else {
-        gtk_widget_set_vexpand(widget, FALSE);
+        gtk_widget_set_vexpand(widget, glib::FALSE);
     }
 }
 
 pub fn widget_set_hexpand(widget: *mut Widget, expand: bool) {
     if expand {
-        gtk_widget_set_hexpand(widget, TRUE);
+        gtk_widget_set_hexpand(widget, glib::TRUE);
     } else {
-        gtk_widget_set_hexpand(widget, FALSE);
+        gtk_widget_set_hexpand(widget, glib::FALSE);
+    }
+}
+
+pub fn widget_set_sensitive(widget: *mut Widget, sensitive: bool) {
+    if sensitive {
+        gtk_widget_set_sensitive(widget, glib::TRUE);
+    } else {
+        gtk_widget_set_sensitive(widget, glib::FALSE);
     }
 }
 

@@ -1,8 +1,10 @@
 with c;
 with std::ffi;
 with gtk;
+with glib;
 
 type WebView = c::void;
+type LoadEvent = c::int;
 
 #(extern) {
     fn webkit_web_view_new() *mut gtk::Widget;
@@ -13,6 +15,9 @@ type WebView = c::void;
     fn webkit_web_view_reload(web_view: *mut WebView);
     fn webkit_web_view_go_back(web_view: *mut WebView);
     fn webkit_web_view_go_forward(web_view: *mut WebView);
+
+    fn webkit_web_view_can_go_back(web_view: *mut WebView) c::int;
+    fn webkit_web_view_can_go_forward(web_view: *mut WebView) c::int;
 }
 
 pub fn web_view_new() *mut gtk::Widget {
@@ -46,4 +51,12 @@ pub fn web_view_go_back(web_view: *mut WebView) {
 
 pub fn web_view_go_forward(web_view: *mut WebView) {
     webkit_web_view_go_forward(web_view);
+}
+
+pub fn web_view_can_go_back(web_view: *mut WebView) bool {
+    return webkit_web_view_can_go_back(web_view) == glib::TRUE;
+}
+
+pub fn web_view_can_go_forward(web_view: *mut WebView) bool {
+    return webkit_web_view_can_go_forward(web_view) == glib::TRUE;
 }
