@@ -23,17 +23,36 @@ type Widgets {
     forward: *mut gtk::Button,
     entry: *mut gtk::Entry,
     progress: *mut gtk::ProgressBar,
-    webview: *mut webkit::WebView,
+    tabs: *mut gtk::Notebook,
+}
+
+fn get_active_webview(tabs: *mut gtk::Notebook) *mut webkit::WebView {
+    let result = gtk::notebook_get_nth_page(
+        tabs, gtk::notebook_get_current_page(tabs)
+    );
+
+    return result as *mut webkit::WebView;
+}
+
+fn add_tab(w: *mut Widgets, url: []u8) {
+    let webview = webkit::web_view_new();
+    gtk::notebook_append_page(w.tabs, webview, gtk::label_new("Tab"));
+    connect_signals(webview, w);
+    webkit::web_view_load_uri(webview, url);
 }
 
 fn entry_activate(entry: *mut gtk::Entry, w: *mut Widgets) {
     let uri = gtk::editable_get_text(entry);
-    webkit::web_view_load_uri(w.webview, uri);
+    webkit::web_view_load_uri(get_active_webview(w.tabs), uri);
 }
 
 fn notify_uri(
     view: *mut webkit::WebView, _spec: *mut glib::ParamSpec, w: *mut Widgets
 ) {
+    if view != get_active_webview(w.tabs) {
+        return;
+    }
+
     let uri = webkit::web_view_get_uri(view);
 
     if uri != null {
@@ -41,9 +60,7 @@ fn notify_uri(
     }
 }
 
-fn notify_load_progress(
-    view: *mut webkit::WebView, _spec: *mut glib::ParamSpec, w: *mut Widgets
-) {
+fn update_progress(view: *mut webkit::WebView, w: *mut Widgets) {
     let progress = webkit::web_view_get_estimated_load_progress(view);
 
     if progress < 1 {
@@ -53,9 +70,17 @@ fn notify_load_progress(
     }
 }
 
-fn load_changed(
-    view: *mut webkit::WebView, _event: webkit::LoadEvent, w: *mut Widgets
+fn notify_load_progress(
+    view: *mut webkit::WebView, _spec: *mut glib::ParamSpec, w: *mut Widgets
 ) {
+    if view != get_active_webview(w.tabs) {
+        return;
+    }
+
+    update_progress(view, w);
+}
+
+fn update_toolbar(view: *mut webkit::WebView, w: *mut Widgets) {
     gtk::widget_set_sensitive(w.back, webkit::web_view_can_go_back(view));
     gtk::widget_set_sensitive(w.forward, webkit::web_view_can_go_forward(view));
 
@@ -66,20 +91,55 @@ fn load_changed(
     }
 }
 
+fn load_changed(
+    view: *mut webkit::WebView, _event: webkit::LoadEvent, w: *mut Widgets
+) {
+    if view != get_active_webview(w.tabs) {
+        return;
+    }
+
+    update_toolbar(view, w);
+}
+
 fn back_clicked(button: *mut gtk::Button, w: *mut Widgets) {
-    webkit::web_view_go_back(w.webview);
+    webkit::web_view_go_back(get_active_webview(w.tabs));
 }
 
 fn forward_clicked(button: *mut gtk::Button, w: *mut Widgets) {
-    webkit::web_view_go_forward(w.webview);
+    webkit::web_view_go_forward(get_active_webview(w.tabs));
 }
 
 fn refresh_clicked(button: *mut gtk::Button, w: *mut Widgets) {
-    if webkit::web_view_is_loading(w.webview) {
-        webkit::web_view_stop_loading(w.webview);
+    let webview = get_active_webview(w.tabs);
+
+    if webkit::web_view_is_loading(webview) {
+        webkit::web_view_stop_loading(webview);
     } else {
-        webkit::web_view_reload(w.webview);
+        webkit::web_view_reload(webview);
     }
+}
+
+fn tab_switched(
+    tabs: *mut gtk::Notebook, page: *mut webkit::WebView, _num: c::uint,
+    w: *mut Widgets
+) {
+    update_toolbar(page, w);
+    update_progress(page, w);
+}
+
+fn connect_signals(view: *mut webkit::WebView, w: *mut Widgets) {
+    glib::signal_connect(
+        view, "notify::uri", &notify_uri as glib::Callback, w as *mut c::void
+    );
+
+    glib::signal_connect(
+        view, "notify::estimated-load-progress",
+        &notify_load_progress as glib::Callback, w as *mut c::void
+    );
+
+    glib::signal_connect(
+        view, "load-changed", &load_changed as glib::Callback, w as *mut c::void
+    );
 }
 
 fn activate(app: *mut gtk::Application, _data: *c::void) {
@@ -117,9 +177,9 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
     let progress = gtk::progress_bar_new();
     gtk::box_append(box, progress);
 
-    let webview = webkit::web_view_new();
-    gtk::box_append(box, webview);
-    gtk::widget_set_vexpand(webview, true);
+    let tabs = gtk::notebook_new();
+    gtk::widget_set_vexpand(tabs, true);
+    gtk::box_append(box, tabs);
 
     let w = glib::malloc(sizeof(Widgets)) as *mut Widgets;
 
@@ -129,7 +189,7 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
         forward: forward,
         entry: entry,
         progress: progress,
-        webview: webview,
+        tabs: tabs,
     };
 
     glib::signal_connect(
@@ -151,20 +211,12 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
     );
 
     glib::signal_connect(
-        webview, "notify::uri", &notify_uri as glib::Callback, w as *mut c::void
+        tabs, "switch-page", &tab_switched as glib::Callback, w as *mut c::void
     );
 
-    glib::signal_connect(
-        webview, "notify::estimated-load-progress",
-        &notify_load_progress as glib::Callback, w as *mut c::void
-    );
+    add_tab(w, WEBSITE);
+    add_tab(w, WEBSITE);
 
-    glib::signal_connect(
-        webview, "load-changed", &load_changed as glib::Callback,
-        w as *mut c::void
-    );
-
-    webkit::web_view_load_uri(webview, WEBSITE);
     gtk::window_present(window);
 }
 

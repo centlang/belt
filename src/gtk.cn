@@ -10,6 +10,7 @@ pub type Button = c::void;
 pub type Entry = c::void;
 pub type Editable = c::void;
 pub type ProgressBar = c::void;
+pub type Notebook = c::void;
 
 pub enum Orientation u8 {
     horizontal = 0,
@@ -37,6 +38,8 @@ pub enum Orientation u8 {
     fn gtk_box_new(orientation: c::int, spacing: c::int) *mut Widget;
     fn gtk_box_append(box: *mut Box, child: *mut Widget);
 
+    fn gtk_label_new(str: *c::char) *mut Widget;
+
     fn gtk_entry_new() *mut Widget;
     fn gtk_editable_get_text(editable: *mut Editable) *c::char;
     fn gtk_editable_set_text(editable: *mut Editable, text: *c::char);
@@ -49,6 +52,18 @@ pub enum Orientation u8 {
     fn gtk_progress_bar_set_fraction(
         pbar: *mut ProgressBar, fraction: c::double
     );
+
+    fn gtk_notebook_new() *mut Widget;
+
+    fn gtk_notebook_append_page(
+        notebook: *mut Notebook, child: *mut Widget, tab_label: *mut Widget
+    );
+
+    fn gtk_notebook_get_nth_page(
+        notebook: *mut Notebook, page_num: c::int
+    ) *mut Widget;
+
+    fn gtk_notebook_get_current_page(notebook: *mut Notebook) c::int;
 }
 
 pub fn application_new(
@@ -120,6 +135,13 @@ pub fn box_append(box: *mut Box, child: *mut Widget) {
     gtk_box_append(box, child);
 }
 
+pub fn label_new(str: []u8) *mut Widget {
+    mut cstr: [str.len + 1]u8 = undefined;
+    ffi::cstr_to(cstr, str);
+
+    return gtk_label_new(ffi::as_cstr(cstr));
+}
+
 pub fn entry_new() *mut Widget {
     return gtk_entry_new();
 }
@@ -156,4 +178,24 @@ pub fn progress_bar_new() *mut Widget {
 
 pub fn progress_bar_set_fraction(pbar: *mut ProgressBar, fraction: f64) {
     gtk_progress_bar_set_fraction(pbar, fraction);
+}
+
+pub fn notebook_new() *mut Widget {
+    return gtk_notebook_new();
+}
+
+pub fn notebook_append_page(
+    notebook: *mut Notebook, child: *mut Widget, tab_label: *mut Widget
+) {
+    gtk_notebook_append_page(notebook, child, tab_label);
+}
+
+pub fn notebook_get_nth_page(
+    notebook: *mut Notebook, page_num: c::int
+) *mut Widget {
+    return gtk_notebook_get_nth_page(notebook, page_num);
+}
+
+pub fn notebook_get_current_page(notebook: *mut Notebook) c::int {
+    return gtk_notebook_get_current_page(notebook);
 }
