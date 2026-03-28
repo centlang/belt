@@ -1,4 +1,4 @@
-# cent-browser
+# Belt Browser
 
 Proof of concept WebKitGTK-based browser written in Cent.
 
@@ -15,7 +15,7 @@ Make sure you have the dependencies installed:
 Clone the repository:
 
 ```sh
-$ git clone https://github.com/centlang/cent-browser && cd cent-browser
+$ git clone https://github.com/centlang/belt && cd belt
 ```
 
 Build:
@@ -27,5 +27,5 @@ $ make
 ## Running
 
 ```sh
-$ build/cent-browser
+$ build/belt
 ```

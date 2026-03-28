@@ -6,7 +6,7 @@ with webkit;
 with std::io;
 
 const WEBSITE = "https://centlang.org";
-const APP_ID = "org.centlang.cent-browser";
+const APP_ID = "org.centlang.belt";
 
 const MARGIN = 5;
 const TOOLBAR_SPACING = 15;
