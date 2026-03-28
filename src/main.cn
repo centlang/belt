@@ -8,10 +8,18 @@ with std::io;
 const WEBSITE = "https://centlang.org";
 const APP_ID = "org.centlang.belt";
 
+const REFRESH_ICON = "⟳";
+const BACK_ICON = "←";
+const FORWARD_ICON = "→";
+
 const MARGIN = 5;
-const TOOLBAR_SPACING = 15;
+const NAVIGATION_SPACING = MARGIN;
+const TOOLBAR_SPACING = 20;
 
 type Widgets {
+    refresh: *mut gtk::Button,
+    back: *mut gtk::Button,
+    forward: *mut gtk::Button,
     entry: *mut gtk::Entry,
     webview: *mut webkit::WebView,
 }
@@ -34,6 +42,16 @@ fn uri_notify(
     }
 }
 
+fn back_clicked(button: *mut gtk::Button, data: *mut c::void) {
+    let w = data as *mut Widgets;
+    webkit::web_view_go_back(w.webview);
+}
+
+fn forward_clicked(button: *mut gtk::Button, data: *mut c::void) {
+    let w = data as *mut Widgets;
+    webkit::web_view_go_forward(w.webview);
+}
+
 fn refresh_clicked(button: *mut gtk::Button, data: *mut c::void) {
     let w = data as *mut Widgets;
     webkit::web_view_reload(w.webview);
@@ -52,12 +70,24 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
     gtk::widget_set_margin_top(toolbar, MARGIN);
     gtk::widget_set_margin_bottom(toolbar, MARGIN);
 
+    let navigation = gtk::box_new(
+        gtk::ORIENTATION_HORIZONTAL, NAVIGATION_SPACING
+    );
+
+    gtk::box_append(toolbar, navigation);
+
+    let refresh = gtk::button_new_with_label(REFRESH_ICON);
+    gtk::box_append(navigation, refresh);
+
+    let back = gtk::button_new_with_label(BACK_ICON);
+    gtk::box_append(navigation, back);
+
+    let forward = gtk::button_new_with_label(FORWARD_ICON);
+    gtk::box_append(navigation, forward);
+
     let entry = gtk::entry_new();
     gtk::box_append(toolbar, entry);
     gtk::widget_set_hexpand(entry, true);
-
-    let refresh = gtk::button_new_with_label("⟳");
-    gtk::box_append(toolbar, refresh);
 
     let webview = webkit::web_view_new();
     gtk::box_append(box, webview);
@@ -65,11 +95,25 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
 
     let w = glib::malloc(sizeof(Widgets)) as *mut Widgets;
 
-    w.entry = entry;
-    w.webview = webview;
+    *w = Widgets {
+        refresh: refresh,
+        back: back,
+        forward: forward,
+        entry: entry,
+        webview: webview,
+    };
 
     glib::signal_connect(
         entry, "activate", &entry_activate as glib::Callback, w as *mut c::void
+    );
+
+    glib::signal_connect(
+        back, "clicked", &back_clicked as glib::Callback, w as *mut c::void
+    );
+
+    glib::signal_connect(
+        forward, "clicked", &forward_clicked as glib::Callback,
+        w as *mut c::void
     );
 
     glib::signal_connect(
