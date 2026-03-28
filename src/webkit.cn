@@ -26,6 +26,8 @@ type LoadEvent = c::int;
     fn webkit_web_view_get_estimated_load_progress(
         web_view: *mut WebView
     ) c::double;
+
+    fn webkit_web_view_get_title(web_view: *mut WebView) *c::char;
 }
 
 pub fn web_view_new() *mut gtk::Widget {
@@ -79,4 +81,9 @@ pub fn web_view_can_go_forward(web_view: *mut WebView) bool {
 
 pub fn web_view_get_estimated_load_progress(web_view: *mut WebView) f64 {
     return webkit_web_view_get_estimated_load_progress(web_view);
+}
+
+pub fn web_view_get_title(web_view: *mut WebView) []u8 {
+    let cstr = webkit_web_view_get_title(web_view);
+    return core::mem::as_u8_slice(cstr as *u8, c::strlen(cstr));
 }

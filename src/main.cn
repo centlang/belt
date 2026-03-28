@@ -37,12 +37,20 @@ fn get_active_webview(tabs: *mut gtk::Notebook) *mut webkit::WebView {
     return result as *mut webkit::WebView;
 }
 
-type TabData {
+fn notify_title(
+    view: *mut webkit::WebView, _spec: *mut glib::ParamSpec,
+    label: *mut gtk::Label
+) {
+    let title = webkit::web_view_get_title(view);
+    gtk::label_set_text(label, title);
+}
+
+type TabCloseData {
     tabs: *mut gtk::Notebook,
     webview: *mut webkit::WebView,
 }
 
-fn tab_x_clicked(_button: *mut gtk::Button, data: *mut TabData) {
+fn tab_x_clicked(_button: *mut gtk::Button, data: *mut TabCloseData) {
     gtk::notebook_remove_page(
         data.tabs, gtk::notebook_page_num(data.tabs, data.webview)
     );
@@ -53,7 +61,7 @@ fn tab_x_clicked(_button: *mut gtk::Button, data: *mut TabData) {
 fn add_tab(w: *mut Widgets, url: []u8) {
     let box = gtk::box_new(gtk::Orientation::horizontal, TAB_X_SPACING);
 
-    let label = gtk::label_new("Tab");
+    let label = gtk::label_new("New tab");
     gtk::box_append(box, label);
 
     let close = gtk::button_new_with_label(CLOSE_ICON);
@@ -61,10 +69,16 @@ fn add_tab(w: *mut Widgets, url: []u8) {
 
     let webview = webkit::web_view_new();
     gtk::notebook_append_page(w.tabs, webview, box);
+    gtk::notebook_set_tab_reorderable(w.tabs, webview, true);
 
-    let data = glib::malloc(sizeof(TabData)) as *mut TabData;
+    glib::signal_connect(
+        webview, "notify::title", &notify_title as glib::Callback,
+        label as *mut c::void
+    );
 
-    *data = TabData {
+    let data = glib::malloc(sizeof(TabCloseData)) as *mut TabCloseData;
+
+    *data = TabCloseData {
         tabs: w.tabs,
         webview: webview,
     };
