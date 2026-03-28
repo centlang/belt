@@ -30,6 +30,8 @@ pub const FALSE = 0;
 
     fn g_malloc(n_bytes: usize) *mut c::void;
     fn g_malloc_n(n_blocks: usize, n_block_bytes: usize) *mut c::void;
+
+    fn g_free(mem: *mut c::void);
 }
 
 pub fn signal_connect(
@@ -62,4 +64,8 @@ pub fn malloc(n_bytes: usize) *mut c::void {
 
 pub fn malloc_n(n_blocks: usize, n_block_bytes: usize) *mut c::void {
     return g_malloc_n(n_blocks, n_block_bytes);
+}
+
+pub fn free(mem: *mut c::void) {
+    g_free(mem);
 }

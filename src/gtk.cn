@@ -12,6 +12,31 @@ pub type Editable = c::void;
 pub type ProgressBar = c::void;
 pub type Notebook = c::void;
 
+pub enum Type u8 {
+    invalid = 0 << 2,
+	none = 1 << 2,
+	interface = 2 << 2,
+	char = 3 << 2,
+	uchar = 4 << 2,
+	boolean = 5 << 2,
+	int = 6 << 2,
+	uint = 7 << 2,
+	long = 8 << 2,
+	ulong = 9 << 2,
+	int64 = 10 << 2,
+	uint64 = 11 << 2,
+	enum_ = 12 << 2,
+	flags = 13 << 2,
+	float = 14 << 2,
+	double = 15 << 2,
+	string = 16 << 2,
+	pointer = 17 << 2,
+	boxed = 18 << 2,
+	param = 19 << 2,
+	object = 20 << 2,
+	variant = 21 << 2,
+}
+
 pub enum Orientation u8 {
     horizontal = 0,
     vertical = 1,
@@ -50,6 +75,12 @@ pub enum Align u8 {
     fn gtk_widget_set_margin_top(widget: *mut Widget, margin: c::int);
     fn gtk_widget_set_margin_bottom(widget: *mut Widget, margin: c::int);
 
+    fn gtk_widget_get_parent(widget: *mut Widget) *mut Widget;
+
+    fn gtk_widget_get_ancestor(
+        widget: *mut Widget, widget_type: c::int
+    ) *mut Widget;
+
     fn gtk_box_new(orientation: c::int, spacing: c::int) *mut Widget;
     fn gtk_box_append(box: *mut Box, child: *mut Widget);
 
@@ -74,15 +105,23 @@ pub enum Align u8 {
         notebook: *mut Notebook, child: *mut Widget, tab_label: *mut Widget
     );
 
+    fn gtk_notebook_remove_page(notebook: *mut Notebook, page_num: c::int);
+
     fn gtk_notebook_set_action_widget(
         notebook: *mut Notebook, widget: *mut Widget, pack_type: c::int
     );
+
+    fn gtk_notebook_page_num(
+        notebook: *mut Notebook, child: *mut Widget
+    ) c::int;
 
     fn gtk_notebook_get_nth_page(
         notebook: *mut Notebook, page_num: c::int
     ) *mut Widget;
 
     fn gtk_notebook_get_current_page(notebook: *mut Notebook) c::int;
+
+    fn gtk_notebook_get_type() c::int;
 }
 
 pub fn application_new(
@@ -150,6 +189,14 @@ pub fn widget_set_margin_bottom(widget: *mut Widget, margin: c::int) {
     gtk_widget_set_margin_bottom(widget, margin);
 }
 
+pub fn widget_get_parent(widget: *mut Widget) *mut Widget {
+    return gtk_widget_get_parent(widget);
+}
+
+pub fn widget_get_ancestor(widget: *mut Widget, widget_type: Type) *mut Widget {
+    return gtk_widget_get_ancestor(widget, widget_type as c::int);
+}
+
 pub fn box_new(orientation: Orientation, spacing: c::int) *mut Widget {
     return gtk_box_new(orientation as c::int, spacing);
 }
@@ -213,10 +260,18 @@ pub fn notebook_append_page(
     gtk_notebook_append_page(notebook, child, tab_label);
 }
 
+fn notebook_remove_page(notebook: *mut Notebook, page_num: c::int) {
+    gtk_notebook_remove_page(notebook, page_num);
+}
+
 pub fn notebook_set_action_widget(
     notebook: *mut Notebook, widget: *mut Widget, pack_type: PackType
 ) {
     gtk_notebook_set_action_widget(notebook, widget, pack_type as c::int);
+}
+
+pub fn notebook_page_num(notebook: *mut Notebook, child: *mut Widget) c::int {
+    return gtk_notebook_page_num(notebook, child);
 }
 
 pub fn notebook_get_nth_page(
@@ -227,4 +282,8 @@ pub fn notebook_get_nth_page(
 
 pub fn notebook_get_current_page(notebook: *mut Notebook) c::int {
     return gtk_notebook_get_current_page(notebook);
+}
+
+pub fn notebook_get_type() Type {
+    return gtk_notebook_get_type() as Type;
 }

@@ -12,8 +12,11 @@ const REFRESH_ICON = "⟳";
 const X_ICON = "⨉";
 const BACK_ICON = "←";
 const FORWARD_ICON = "→";
+const PLUS_ICON = "+";
+const CLOSE_ICON = "✕";
 
 const MARGIN = 5;
+const TAB_X_SPACING = 10;
 const NAVIGATION_SPACING = MARGIN;
 const TOOLBAR_SPACING = 20;
 
@@ -34,9 +37,43 @@ fn get_active_webview(tabs: *mut gtk::Notebook) *mut webkit::WebView {
     return result as *mut webkit::WebView;
 }
 
+type TabData {
+    tabs: *mut gtk::Notebook,
+    webview: *mut webkit::WebView,
+}
+
+fn tab_x_clicked(_button: *mut gtk::Button, data: *mut TabData) {
+    gtk::notebook_remove_page(
+        data.tabs, gtk::notebook_page_num(data.tabs, data.webview)
+    );
+
+    glib::free(data as *mut c::void);
+}
+
 fn add_tab(w: *mut Widgets, url: []u8) {
+    let box = gtk::box_new(gtk::Orientation::horizontal, TAB_X_SPACING);
+
+    let label = gtk::label_new("Tab");
+    gtk::box_append(box, label);
+
+    let close = gtk::button_new_with_label(CLOSE_ICON);
+    gtk::box_append(box, close);
+
     let webview = webkit::web_view_new();
-    gtk::notebook_append_page(w.tabs, webview, gtk::label_new("Tab"));
+    gtk::notebook_append_page(w.tabs, webview, box);
+
+    let data = glib::malloc(sizeof(TabData)) as *mut TabData;
+
+    *data = TabData {
+        tabs: w.tabs,
+        webview: webview,
+    };
+
+    glib::signal_connect(
+        close, "clicked", &tab_x_clicked as glib::Callback,
+        data as *mut c::void
+    );
+
     connect_signals(webview, w);
     webkit::web_view_load_uri(webview, url);
 }
@@ -101,15 +138,15 @@ fn load_changed(
     update_toolbar(view, w);
 }
 
-fn back_clicked(button: *mut gtk::Button, w: *mut Widgets) {
+fn back_clicked(_button: *mut gtk::Button, w: *mut Widgets) {
     webkit::web_view_go_back(get_active_webview(w.tabs));
 }
 
-fn forward_clicked(button: *mut gtk::Button, w: *mut Widgets) {
+fn forward_clicked(_button: *mut gtk::Button, w: *mut Widgets) {
     webkit::web_view_go_forward(get_active_webview(w.tabs));
 }
 
-fn refresh_clicked(button: *mut gtk::Button, w: *mut Widgets) {
+fn refresh_clicked(_button: *mut gtk::Button, w: *mut Widgets) {
     let webview = get_active_webview(w.tabs);
 
     if webkit::web_view_is_loading(webview) {
@@ -119,12 +156,12 @@ fn refresh_clicked(button: *mut gtk::Button, w: *mut Widgets) {
     }
 }
 
-fn plus_clicked(button: *mut gtk::Button, w: *mut Widgets) {
+fn plus_clicked(_button: *mut gtk::Button, w: *mut Widgets) {
     add_tab(w, WEBSITE);
 }
 
 fn tab_switched(
-    tabs: *mut gtk::Notebook, page: *mut webkit::WebView, _num: c::uint,
+    _tabs: *mut gtk::Notebook, page: *mut webkit::WebView, _num: c::uint,
     w: *mut Widgets
 ) {
     update_toolbar(page, w);
@@ -185,7 +222,7 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
     gtk::widget_set_vexpand(tabs, true);
     gtk::box_append(box, tabs);
 
-    let plus = gtk::button_new_with_label("+");
+    let plus = gtk::button_new_with_label(PLUS_ICON);
     gtk::notebook_set_action_widget(tabs, plus, gtk::PackType::end);
 
     let w = glib::malloc(sizeof(Widgets)) as *mut Widgets;
