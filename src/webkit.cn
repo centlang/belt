@@ -22,6 +22,10 @@ type LoadEvent = c::int;
 
     fn webkit_web_view_can_go_back(web_view: *mut WebView) c::int;
     fn webkit_web_view_can_go_forward(web_view: *mut WebView) c::int;
+
+    fn webkit_web_view_get_estimated_load_progress(
+        web_view: *mut WebView
+    ) c::double;
 }
 
 pub fn web_view_new() *mut gtk::Widget {
@@ -71,4 +75,8 @@ pub fn web_view_can_go_back(web_view: *mut WebView) bool {
 
 pub fn web_view_can_go_forward(web_view: *mut WebView) bool {
     return webkit_web_view_can_go_forward(web_view) == glib::TRUE;
+}
+
+pub fn web_view_get_estimated_load_progress(web_view: *mut WebView) f64 {
+    return webkit_web_view_get_estimated_load_progress(web_view);
 }

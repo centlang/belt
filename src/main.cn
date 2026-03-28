@@ -22,6 +22,7 @@ type Widgets {
     back: *mut gtk::Button,
     forward: *mut gtk::Button,
     entry: *mut gtk::Entry,
+    progress: *mut gtk::ProgressBar,
     webview: *mut webkit::WebView,
 }
 
@@ -30,13 +31,25 @@ fn entry_activate(entry: *mut gtk::Entry, w: *mut Widgets) {
     webkit::web_view_load_uri(w.webview, uri);
 }
 
-fn uri_notify(
+fn notify_uri(
     view: *mut webkit::WebView, _spec: *mut glib::ParamSpec, w: *mut Widgets
 ) {
     let uri = webkit::web_view_get_uri(view);
 
     if uri != null {
         gtk::editable_set_text(w.entry, uri.!);
+    }
+}
+
+fn notify_load_progress(
+    view: *mut webkit::WebView, _spec: *mut glib::ParamSpec, w: *mut Widgets
+) {
+    let progress = webkit::web_view_get_estimated_load_progress(view);
+
+    if progress < 1 {
+        gtk::progress_bar_set_fraction(w.progress, progress);
+    } else {
+        gtk::progress_bar_set_fraction(w.progress, 0);
     }
 }
 
@@ -72,10 +85,10 @@ fn refresh_clicked(button: *mut gtk::Button, w: *mut Widgets) {
 fn activate(app: *mut gtk::Application, _data: *c::void) {
     let window = gtk::application_window_new(app);
 
-    let box = gtk::box_new(gtk::ORIENTATION_VERTICAL, 0);
+    let box = gtk::box_new(gtk::Orientation::vertical, 0);
     gtk::window_set_child(window, box);
 
-    let toolbar = gtk::box_new(gtk::ORIENTATION_HORIZONTAL, TOOLBAR_SPACING);
+    let toolbar = gtk::box_new(gtk::Orientation::horizontal, TOOLBAR_SPACING);
     gtk::box_append(box, toolbar);
     gtk::widget_set_margin_start(toolbar, MARGIN);
     gtk::widget_set_margin_end(toolbar, MARGIN);
@@ -83,7 +96,7 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
     gtk::widget_set_margin_bottom(toolbar, MARGIN);
 
     let navigation = gtk::box_new(
-        gtk::ORIENTATION_HORIZONTAL, NAVIGATION_SPACING
+        gtk::Orientation::horizontal, NAVIGATION_SPACING
     );
 
     gtk::box_append(toolbar, navigation);
@@ -101,6 +114,9 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
     gtk::box_append(toolbar, entry);
     gtk::widget_set_hexpand(entry, true);
 
+    let progress = gtk::progress_bar_new();
+    gtk::box_append(box, progress);
+
     let webview = webkit::web_view_new();
     gtk::box_append(box, webview);
     gtk::widget_set_vexpand(webview, true);
@@ -112,6 +128,7 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
         back: back,
         forward: forward,
         entry: entry,
+        progress: progress,
         webview: webview,
     };
 
@@ -134,7 +151,12 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
     );
 
     glib::signal_connect(
-        webview, "notify::uri", &uri_notify as glib::Callback, w as *mut c::void
+        webview, "notify::uri", &notify_uri as glib::Callback, w as *mut c::void
+    );
+
+    glib::signal_connect(
+        webview, "notify::estimated-load-progress",
+        &notify_load_progress as glib::Callback, w as *mut c::void
     );
 
     glib::signal_connect(

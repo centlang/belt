@@ -9,10 +9,12 @@ pub type Box = c::void;
 pub type Button = c::void;
 pub type Entry = c::void;
 pub type Editable = c::void;
-pub type Orientation = c::int;
+pub type ProgressBar = c::void;
 
-pub const ORIENTATION_HORIZONTAL = 0;
-pub const ORIENTATION_VERTICAL = 1;
+pub enum Orientation u8 {
+    horizontal = 0,
+    vertical = 1,
+}
 
 #(extern) {
     fn gtk_application_new(
@@ -32,7 +34,7 @@ pub const ORIENTATION_VERTICAL = 1;
     fn gtk_widget_set_margin_top(widget: *mut Widget, margin: c::int);
     fn gtk_widget_set_margin_bottom(widget: *mut Widget, margin: c::int);
 
-    fn gtk_box_new(orientation: Orientation, spacing: c::int) *mut Widget;
+    fn gtk_box_new(orientation: c::int, spacing: c::int) *mut Widget;
     fn gtk_box_append(box: *mut Box, child: *mut Widget);
 
     fn gtk_entry_new() *mut Widget;
@@ -41,6 +43,12 @@ pub const ORIENTATION_VERTICAL = 1;
 
     fn gtk_button_new_with_label(label: *c::char) *mut Widget;
     fn gtk_button_set_label(button: *mut Button, label: *c::char);
+
+    fn gtk_progress_bar_new() *mut Widget;
+
+    fn gtk_progress_bar_set_fraction(
+        pbar: *mut ProgressBar, fraction: c::double
+    );
 }
 
 pub fn application_new(
@@ -105,7 +113,7 @@ pub fn widget_set_margin_bottom(widget: *mut Widget, margin: c::int) {
 }
 
 pub fn box_new(orientation: Orientation, spacing: c::int) *mut Widget {
-    return gtk_box_new(orientation, spacing);
+    return gtk_box_new(orientation as c::int, spacing);
 }
 
 pub fn box_append(box: *mut Box, child: *mut Widget) {
@@ -140,4 +148,12 @@ pub fn button_set_label(button: *mut Button, label: []u8) {
     ffi::cstr_to(cstr, label);
 
     gtk_button_set_label(button, ffi::as_cstr(cstr));
+}
+
+pub fn progress_bar_new() *mut Widget {
+    return gtk_progress_bar_new();
+}
+
+pub fn progress_bar_set_fraction(pbar: *mut ProgressBar, fraction: f64) {
+    gtk_progress_bar_set_fraction(pbar, fraction);
 }
