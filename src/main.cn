@@ -3,8 +3,6 @@ with glib;
 with gtk;
 with webkit;
 
-with std::io;
-
 const WEBSITE = "https://centlang.org";
 const APP_ID = "org.centlang.belt";
 
@@ -121,7 +119,14 @@ fn activate(app: *mut gtk::Application, _data: *c::void) {
     gtk::box_append(box, webview);
     gtk::widget_set_vexpand(webview, true);
 
-    let w = glib::malloc(sizeof(Widgets)) as *mut Widgets;
+    let w = glib::malloc(sizeof(Widgets));
+
+    if w == null {
+        core::panic("Widgets allocation failed");
+        return;
+    }
+
+    let w = w.! as *mut Widgets;
 
     *w = Widgets {
         refresh: refresh,
