@@ -27,5 +27,5 @@ $ make
 ## Running
 
 ```sh
-$ build/belt
+$ build/release/belt
 ```
