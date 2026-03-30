@@ -1,6 +1,6 @@
 # Belt Browser
 
-Proof of concept WebKitGTK-based browser written in Cent.
+Proof of concept WebKitGTK-based browser.
 
 ![Preview](assets/preview.png)
 
